@@ -6,9 +6,10 @@ const GENERATE_NEXACRO = [
     "-O", "C:\\_projects\\nexacro\\17.1\\outputs\\hellonexacro",
     "-B", "C:\\Program Files (x86)\\nexacro\\17.1\\nexacro17lib"
 ];
-
+console.log("Deno is running...");
 const watcher = Deno.watchFs(WATCH_PATH, WATCH_OPTION);
 const options = {regenerate: false};
+let timeoutID:number;
 
 for await (const event of watcher) {
     //console.log(event);
@@ -16,7 +17,6 @@ for await (const event of watcher) {
         await Deno.stat(`${WATCH_PATH}\\all`);
         options.regenerate = true;
     } catch (error) {
-    
         if (error && error.name === "NotFound") {
             options.regenerate = false;
           } else {
@@ -26,7 +26,6 @@ for await (const event of watcher) {
     runNexacroDeploy(event);
 }
 
-let timeoutID:number;
 async function runNexacroDeploy (event:Deno.FsEvent) {
    
     //console.log("event", timeoutID);
@@ -36,12 +35,10 @@ async function runNexacroDeploy (event:Deno.FsEvent) {
     
     timeoutID = setTimeout(
         async () => {
-
             if(path.indexOf("$")<0 && kind == "modify") {
                 const generateAll = path.search(/.*?\.xml|.*?\.xadl|.*?\.xcss|.*?\.png|.*?\.jpg/gi);
                 if(options.regenerate) GENERATE_NEXACRO.push("-REGENERATE");
                 if(!options.regenerate && generateAll!=0) GENERATE_NEXACRO.push("-FILE", `${path}`);
-
                 const p = Deno.run({
                     cmd: GENERATE_NEXACRO
                 });
